@@ -12,6 +12,8 @@ RUN apt-get update && \
         libxcb-xinerama0 \
         libxcb-cursor0 \
         python3-xdg \
+        lame \
+        mplayer \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
