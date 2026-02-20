@@ -2,7 +2,7 @@
 # Auto-click "Yes/Download" button in Anki's initial sync dialog
 # Language-agnostic: just presses Enter on the default button
 
-TIMEOUT=30
+TIMEOUT="${AUTO_SYNC_DIALOG_TIMEOUT:-180}"
 echo "[*] Waiting for Anki sync dialog..."
 
 # Wait for Anki dialog window (not main window)
