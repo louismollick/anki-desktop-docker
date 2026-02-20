@@ -98,12 +98,16 @@ bash scripts/render-nginx-config.sh
 sudo mkdir -p /etc/systemd/system
 sudo cp deploy/systemd/anki-cleanup.service /etc/systemd/system/anki-cleanup.service
 sudo cp deploy/systemd/anki-cleanup.timer /etc/systemd/system/anki-cleanup.timer
+sudo cp deploy/systemd/anki-sync.service /etc/systemd/system/anki-sync.service
+sudo cp deploy/systemd/anki-sync.timer /etc/systemd/system/anki-sync.timer
 
 # Align service paths with current checkout for flexibility.
 sudo sed -i "s|%h/anki-desktop-docker|$REPO_DIR|g" /etc/systemd/system/anki-cleanup.service
+sudo sed -i "s|%h/anki-desktop-docker|$REPO_DIR|g" /etc/systemd/system/anki-sync.service
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now anki-cleanup.timer
+sudo systemctl enable --now anki-sync.timer
 
 echo "Bootstrap complete."
 echo "VNC UI: http://${EXTERNAL_DOMAIN}/"

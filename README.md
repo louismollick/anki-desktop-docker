@@ -5,6 +5,7 @@ Run Anki Desktop in Docker with:
 - public AnkiConnect API via nginx at `http://<domain>/api`
 - automated AnkiWeb setup (using sync key)
 - scheduled cleanup restart every 12 hours via systemd timer
+- scheduled AnkiWeb sync every 10 minutes via AnkiConnect + on startup
 
 This repository keeps the current automation approach used here:
 - automated profile/setup flow via `scripts/setup_anki.py`
@@ -87,6 +88,7 @@ What it does:
 - renders nginx config
 - starts containers
 - installs/enables a 12-hour cleanup systemd timer
+- installs/enables a 10-minute AnkiWeb sync systemd timer
 
 Password handling:
 - password is used only to derive sync key
@@ -119,6 +121,38 @@ Run once manually:
 
 ```bash
 sudo systemctl start anki-cleanup.service
+```
+
+## Scheduled Sync
+
+Sync behavior:
+- Startup sync is triggered from container startup when `AUTO_SYNC_ON_START=true`
+- Periodic sync runs every 10 minutes via systemd timer
+
+Files:
+- `scripts/sync-now.sh`
+- `deploy/systemd/anki-sync.service`
+- `deploy/systemd/anki-sync.timer`
+
+Install manually (if you do not use bootstrap script):
+
+```bash
+sudo cp deploy/systemd/anki-sync.service /etc/systemd/system/
+sudo cp deploy/systemd/anki-sync.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now anki-sync.timer
+```
+
+Check status:
+
+```bash
+systemctl status anki-sync.timer
+```
+
+Run once manually:
+
+```bash
+sudo systemctl start anki-sync.service
 ```
 
 ## Getting an Anki Sync Key
