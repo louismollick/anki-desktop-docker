@@ -128,6 +128,7 @@ sudo systemctl start anki-cleanup.service
 Sync behavior:
 - Startup sync is triggered from container startup when `AUTO_SYNC_ON_START=true`
 - Periodic sync runs every 10 minutes via systemd timer
+- Timer/service considers sync successful only when AnkiConnect returns `"error": null`
 
 Files:
 - `scripts/sync-now.sh`

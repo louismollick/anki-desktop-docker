@@ -15,7 +15,7 @@ for _ in $(seq 1 12); do
     fi
   ' || true)"
 
-  if [[ -n "$response" ]]; then
+  if echo "$response" | grep -q '"error"[[:space:]]*:[[:space:]]*null'; then
     echo "sync completed: $response"
     exit 0
   fi

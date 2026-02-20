@@ -38,14 +38,18 @@ if [ "$AUTO_SYNC" = "true" ]; then
                 SYNC_RESPONSE=$(curl -fsS -m 10 localhost:8765 -X POST -d '{"action":"sync","version":6}' || true)
             fi
 
-            if [ -n "$SYNC_RESPONSE" ]; then
+            if echo "$SYNC_RESPONSE" | grep -q '"error"[[:space:]]*:[[:space:]]*null'; then
                 echo "[OK] Startup sync response: $SYNC_RESPONSE"
                 exit 0
             fi
             sleep 2
         done
 
-        echo "[WARN] Startup sync did not complete before timeout"
+        if [ -n "$SYNC_RESPONSE" ]; then
+            echo "[WARN] Startup sync returned non-success response: $SYNC_RESPONSE"
+        else
+            echo "[WARN] Startup sync did not complete before timeout"
+        fi
     ) &
 fi
 
