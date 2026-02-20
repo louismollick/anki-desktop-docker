@@ -28,6 +28,9 @@ ANKI_PID=$!
 
 # Auto-sync on every startup via AnkiConnect.
 if [ "$AUTO_SYNC" = "true" ]; then
+    echo "[*] Starting GUI automation for sync popup..."
+    /app/scripts/auto_sync_gui.sh &
+
     (
         API_KEY="${ANKICONNECT_API_KEY:-}"
         SYNC_RESPONSE=""
