@@ -23,6 +23,7 @@ RUN apt-get update && \
         libxcb-render-util0 \
         libxcb-shape0 \
         libxkbcommon-x11-0 \
+        libxdamage1 \
         libdbus-1-3 \
         libegl1 \
         libfontconfig1 \
