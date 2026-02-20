@@ -37,7 +37,7 @@ print_usage() {
     echo "  echo \"ANKIWEB_SYNC_KEY=\$SYNC_KEY\" >> .env"
     echo ""
     echo "  # Use with Docker"
-    echo "  docker run --rm mlcivilengineer/anki-desktop-docker:main \\"
+    echo "  docker run --rm ghcr.io/louismollick/anki-desktop-docker:main \\"
     echo "    python3 /app/scripts/get_anki_synckey.py --user USER --password PASS"
 }
 
@@ -124,7 +124,7 @@ fi
 
 echo -e "${GREEN}[*] Retrieving sync key via Docker...${NC}" >&2
 
-docker run --rm mlcivilengineer/anki-desktop-docker:main \
+docker run --rm ghcr.io/louismollick/anki-desktop-docker:main \
     python3 /app/scripts/get_anki_synckey.py \
     --user "$USERNAME" \
     --password "$PASSWORD" \
