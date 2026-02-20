@@ -15,7 +15,7 @@ cd "$REPO_DIR"
 
 install_deps() {
   sudo apt-get update
-  sudo apt-get install -y ca-certificates curl gnupg lsb-release openssl python3 python3-pip
+  sudo apt-get install -y ca-certificates curl gnupg lsb-release openssl python3 python3-pip python3-requests python3-zstandard
 
   if ! command -v docker >/dev/null 2>&1; then
     sudo install -m 0755 -d /etc/apt/keyrings
@@ -53,9 +53,10 @@ ensure_docker_access
 
 mkdir -p anki_data nginx/conf.d
 
-if ! python3 -c "import requests, zstandard" >/dev/null 2>&1; then
-  pip3 install --user requests zstandard
-fi
+python3 -c "import requests, zstandard" >/dev/null 2>&1 || {
+  echo "Python dependencies (requests, zstandard) are required but unavailable."
+  exit 1
+}
 
 SYNC_KEY="$(python3 scripts/get_anki_synckey.py --user "$ANKIWEB_USER_INPUT" --password "$ANKIWEB_PASSWORD_INPUT")"
 if [[ -z "$SYNC_KEY" ]]; then
