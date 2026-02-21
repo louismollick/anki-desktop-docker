@@ -1,8 +1,8 @@
 # Anki Desktop in Docker
 
 Run Anki Desktop in Docker with:
-- browser-accessible VNC UI via nginx at `http://<domain>/`
-- public AnkiConnect API via nginx at `http://<domain>/api`
+- browser-accessible VNC UI via nginx at `https://<domain>/`
+- public AnkiConnect API via nginx at `https://<domain>/api`
 - automated AnkiWeb setup (using sync key)
 - scheduled cleanup restart every 12 hours via systemd timer
 - scheduled AnkiWeb sync every 10 minutes via AnkiConnect + on startup
@@ -20,8 +20,8 @@ Canonical image reference used across this repo:
 ## Public Endpoint Contract
 
 With nginx enabled:
-- VNC UI: `http://<domain>/`
-- AnkiConnect API: `http://<domain>/api`
+- VNC UI: `https://<domain>/`
+- AnkiConnect API: `https://<domain>/api`
 
 API requests are proxied from `/api` to the container's internal `8765` endpoint.
 
@@ -47,6 +47,7 @@ ANKI_DOMAIN=anki.example.com
 ANKIWEB_USER=you@example.com
 ANKIWEB_SYNC_KEY=your_sync_key
 ANKIWEB_PASSWORD=
+LETSENCRYPT_EMAIL=you@example.com
 ANKI_IMAGE=ghcr.io/louismollick/anki-desktop-docker:main
 ```
 
@@ -60,8 +61,8 @@ docker compose up -d --build
 4. Validate:
 
 ```bash
-curl -I http://$ANKI_DOMAIN/
-curl -sS http://$ANKI_DOMAIN/api \
+curl -I https://$ANKI_DOMAIN/
+curl -sS https://$ANKI_DOMAIN/api \
   -H 'Content-Type: application/json' \
   -d '{"action":"version","version":6}'
 ```
@@ -71,8 +72,10 @@ curl -sS http://$ANKI_DOMAIN/api \
 Use:
 
 ```bash
-./scripts/bootstrap-vps.sh <external_domain> <ankiweb_user> <ankiweb_password>
+./scripts/bootstrap-vps.sh <external_domain> [ankiweb_user] [ankiweb_password]
 ```
+
+If `.env` already has `ANKIWEB_SYNC_KEY`, reruns can use only `<external_domain>`.
 
 Example:
 
@@ -82,10 +85,11 @@ Example:
 
 What it does:
 - installs Docker + Compose dependencies if missing
-- derives `ANKIWEB_SYNC_KEY` from username/password
-- writes `.env` with domain, username, sync key, and GHCR image
+- derives `ANKIWEB_SYNC_KEY` from username/password when password is provided
+- writes/updates `.env` with domain, username (if provided), sync key, Let's Encrypt email, and GHCR image
 - clears plaintext password from shell variables
 - renders nginx config
+- requests/reuses Let's Encrypt cert via certbot and enables HTTPS
 - starts containers
 - installs/enables a 12-hour cleanup systemd timer
 - installs/enables a 10-minute AnkiWeb sync systemd timer
@@ -94,6 +98,11 @@ Password handling:
 - password is used only to derive sync key
 - password is not persisted to `.env`
 - `.env` stores `ANKIWEB_SYNC_KEY`
+
+Let's Encrypt email:
+- `LETSENCRYPT_EMAIL` is required in `.env`
+- bootstrap exits early if `LETSENCRYPT_EMAIL` is missing
+- certbot always registers/uses that email (no no-email fallback)
 
 ## Cleanup Every 12 Hours
 
@@ -177,12 +186,11 @@ docker run --rm ghcr.io/louismollick/anki-desktop-docker:main \
 ## Docker Compose Services
 
 - `anki-desktop` (internal ports only): `3000`, `8765`
-- `nginx` (public): `80`
+- `nginx` (public): `80`, `443`
 
 `anki-desktop` is not directly published on host ports by default.
 
 ## Notes
 
-- This deployment is intentionally HTTP-only in current setup.
 - Ensure DNS for `ANKI_DOMAIN` points to your VPS.
-- Ensure VPS firewall/security lists allow inbound TCP `80`.
+- Ensure VPS firewall/security lists allow inbound TCP `80` and `443`.
