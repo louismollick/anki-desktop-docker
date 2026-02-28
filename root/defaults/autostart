@@ -26,38 +26,12 @@ fi
 anki &
 ANKI_PID=$!
 
-# Auto-sync on every startup via AnkiConnect.
-if [ "$AUTO_SYNC" = "true" ]; then
-    echo "[*] Starting GUI automation for sync popup..."
+# Auto-click sync dialog if first-time setup was done
+if [ "$AUTO_SYNC" = "true" ] && [ -f "$SETUP_MARKER" ]; then
+    echo "[*] Starting GUI automation for initial sync..."
     /app/scripts/auto_sync_gui.sh &
-
-    (
-        API_KEY="${ANKICONNECT_API_KEY:-}"
-        SYNC_RESPONSE=""
-        for _ in $(seq 1 45); do
-            if [ -n "$API_KEY" ]; then
-                SYNC_RESPONSE=$(curl -fsS -m 10 localhost:8765 -X POST -d "{\"action\":\"sync\",\"version\":6,\"key\":\"$API_KEY\"}" || true)
-            else
-                SYNC_RESPONSE=$(curl -fsS -m 10 localhost:8765 -X POST -d '{"action":"sync","version":6}' || true)
-            fi
-
-            if echo "$SYNC_RESPONSE" | grep -q '"error"[[:space:]]*:[[:space:]]*null'; then
-                echo "[OK] Startup sync response: $SYNC_RESPONSE"
-                exit 0
-            fi
-            sleep 2
-        done
-
-        if [ -n "$SYNC_RESPONSE" ]; then
-            echo "[WARN] Startup sync returned non-success response: $SYNC_RESPONSE"
-        else
-            echo "[WARN] Startup sync did not complete before timeout"
-        fi
-    ) &
+    rm -f "$SETUP_MARKER"
 fi
-
-# First-run marker no longer needed after startup checks.
-rm -f "$SETUP_MARKER"
 
 # Wait for Anki process
 wait $ANKI_PID

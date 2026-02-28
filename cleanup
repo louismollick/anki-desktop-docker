@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec "$REPO_DIR/scripts/cleanup-restart.sh"
+#!/bin/bash
+sudo docker compose -f ~/anki-desktop-docker/docker-compose.yml down 
+sudo docker compose -f ~/anki-desktop-docker/docker-compose.yml up -d

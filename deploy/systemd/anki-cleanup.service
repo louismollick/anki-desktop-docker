@@ -1,9 +1,0 @@
-[Unit]
-Description=Restart Anki container to reclaim memory
-After=docker.service
-Requires=docker.service
-
-[Service]
-Type=oneshot
-WorkingDirectory=%h/anki-desktop-docker
-ExecStart=/usr/bin/env bash %h/anki-desktop-docker/scripts/cleanup-restart.sh

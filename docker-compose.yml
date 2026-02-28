@@ -31,20 +31,6 @@ services:
       # - INSTALL_PACKAGES=language-pack-zh-hans|fonts-arphic-ukai|fonts-arphic-uming|fonts-ipafont-mincho|fonts-ipafont-gothic|fonts-unfonts-core
     volumes:
       - ./anki_data:/config
-    expose:
-      - "3000"  # Web UI (internal; proxied by nginx)
-      - "8765"  # AnkiConnect API (internal; proxied by nginx)
-    restart: unless-stopped
-
-  nginx:
-    image: nginx:1.27-alpine
-    depends_on:
-      - anki-desktop
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-      - /var/www/certbot:/var/www/certbot:ro
-    restart: unless-stopped
+      - 3000:3000  # Web UI
+      - 8765:8765  # AnkiConnect
