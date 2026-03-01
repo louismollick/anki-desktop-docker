@@ -1,8 +1,8 @@
 #!/bin/bash
-# Auto-click "Yes/Download" button in Anki's initial sync dialog
-# Language-agnostic: just presses Enter on the default button
+# Auto-click "Yes/Download" button in Anki's initial sync dialog.
+# Language-agnostic: presses Enter on the dialog's default button.
 
-TIMEOUT=30
+TIMEOUT="${AUTO_SYNC_DIALOG_TIMEOUT:-180}"
 echo "[*] Waiting for Anki sync dialog..."
 
 # Wait for Anki dialog window (not main window)
@@ -32,8 +32,9 @@ while [ $elapsed -lt $TIMEOUT ]; do
                 if [ "$WIDTH" -gt 200 ] && [ "$WIDTH" -lt 600 ] && [ "$HEIGHT" -gt 80 ] && [ "$HEIGHT" -lt 400 ]; then
                     echo "[*] Sync dialog detected, clicking 'Download' button..."
                     xdotool windowactivate "$WINDOW" 2>/dev/null
+                    xdotool windowfocus --sync "$WINDOW" 2>/dev/null
                     sleep 0.5
-                    xdotool key Return
+                    xdotool key --window "$WINDOW" --clearmodifiers Return
                     echo "[OK] Automatic sync initiated"
                     exit 0
                 fi
