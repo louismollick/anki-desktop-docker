@@ -1,6 +1,12 @@
 FROM node:24-bookworm-slim AS node
 RUN node -e "const [major, minor, patch] = process.versions.node.split('.').map(Number); if (major !== 24 || minor < 22 || (minor === 22 && patch < 1)) process.exit(1)"
 
+FROM lsiobase/kasmvnc:ubuntunoble AS kclient
+COPY --from=node /usr/local/ /usr/local/
+# Kasm's audio helper contains a native addon tied to Node's module ABI.
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential libpulse-dev python3 && \
+    cd /kclient && npm rebuild && node -e "require('pulseaudio2')"
+
 FROM lsiobase/kasmvnc:ubuntunoble
 
 # Use pre-launcher Anki version from PyPI (avoids launcher confirmation issues)
@@ -9,6 +15,7 @@ ARG ANKI_VERSION=25.2.7
 
 # KasmVNC also runs Node. Replace the distro runtime with the patched LTS build.
 COPY --from=node /usr/local/bin/node /usr/bin/node
+COPY --from=kclient /kclient /kclient
 RUN node --version
 
 # Install system dependencies and Qt6/XCB requirements
