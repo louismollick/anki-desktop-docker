@@ -427,16 +427,46 @@ class AnkiSetup:
             "ignoreOriginList": [],
             "webBindAddress": "0.0.0.0",
             "webBindPort": 8765,
-            "webCorsOrigin": "http://localhost",
-            "webCorsOriginList": ["*"]
+            "webCorsOrigin": None,
+            "webCorsOriginList": []
         }
 
         # Merge with custom config
         config.update(default_config)
         config.update(self.ankiconnect_config)
 
+        key = config.get("apiKey")
+        origins = config.get("webCorsOriginList")
+        if not isinstance(key, str) or len(key.strip()) < 32:
+            self.info("[ERROR] Set ANKICONNECT_API_KEY to a random secret of at least 32 characters")
+            return False
+        if not isinstance(origins, list) or any(
+            not isinstance(origin, str)
+            or "*" in origin
+            or not urlparse(origin).scheme
+            or not urlparse(origin).netloc
+            or urlparse(origin).path
+            or urlparse(origin).query
+            or urlparse(origin).fragment
+            or urlparse(origin).username
+            for origin in origins
+        ):
+            self.info("[ERROR] ANKICONNECT_CORS_ORIGIN must be a JSON list of exact origins, without wildcards")
+            return False
+
+        # Anki's saved meta.json config overrides config.json defaults. Update both
+        # so key rotation and CORS changes also apply to existing persistent volumes.
+        meta_path = addon_folder / "meta.json"
+        meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
+        meta["config"] = {**meta.get("config", {}), **config}
+
         # Write configuration
+        config_path.touch(mode=0o600, exist_ok=True)
+        config_path.chmod(0o600)
         config_path.write_text(json.dumps(config, indent=2, ensure_ascii=False))
+        meta_path.touch(mode=0o600, exist_ok=True)
+        meta_path.chmod(0o600)
+        meta_path.write_text(json.dumps(meta, indent=2, ensure_ascii=False))
 
         self.log("Configuration:")
         self.log(f"  webBindAddress: {config['webBindAddress']}")
@@ -466,11 +496,6 @@ class AnkiSetup:
         self.info("=" * 60)
         self.info("Anki Docker Setup")
         self.info("=" * 60)
-
-        # Check if already setup
-        if self.prefs_db.exists():
-            self.info("[OK] Setup already complete, skipping")
-            return True
 
         # Run all setup operations
         operations = [
@@ -553,7 +578,7 @@ Environment Variables:
   ANKICONNECT_BIND_ADDRESS      Bind address (default: 0.0.0.0)
   ANKICONNECT_BIND_PORT         Bind port (default: 8765)
   ANKICONNECT_CORS_ORIGIN       CORS origin list as JSON array
-  ANKICONNECT_API_KEY           Optional API key for authentication
+  ANKICONNECT_API_KEY           Required random API key, at least 32 characters
   ANKICONNECT_API_LOG_PATH      Optional log file path
 
 Examples:

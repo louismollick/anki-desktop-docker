@@ -156,8 +156,8 @@ The `docker-compose.yml` automatically loads variables from `.env` file. See [.e
 |----------|-------------|---------|
 | `ANKICONNECT_BIND_ADDRESS` | Bind address | `0.0.0.0` |
 | `ANKICONNECT_BIND_PORT` | Bind port | `8765` |
-| `ANKICONNECT_CORS_ORIGIN` | CORS origins (JSON array) | `["*"]` |
-| `ANKICONNECT_API_KEY` | Optional API key for auth | - |
+| `ANKICONNECT_CORS_ORIGIN` | CORS origins (JSON array) | `[]` |
+| `ANKICONNECT_API_KEY` | Required random API key, at least 32 characters | - |
 | `ANKICONNECT_API_LOG_PATH` | Optional log file path | - |
 
 ### System
@@ -223,13 +223,13 @@ If setting up manually via web UI, install [AnkiConnect addon 2055492159](https:
 
 ```json
 {
-    "apiKey": null,
+    "apiKey": "replace-with-a-random-secret-of-at-least-32-characters",
     "apiLogPath": null,
     "ignoreOriginList": [],
     "webBindAddress": "0.0.0.0",
     "webBindPort": 8765,
     "webCorsOrigin": "http://localhost",
-    "webCorsOriginList": ["*"]
+    "webCorsOriginList": ["https://your-reader.example"]
 }
 ```
 
@@ -265,3 +265,9 @@ This sets up:
 * **9:00 UTC** — Backup
 * **10:00 & 22:00 UTC** — Cleanup
 
+
+## API security
+
+Set `ANKICONNECT_API_KEY` to a random secret of at least 32 characters. The API refuses to start without it. Set `ANKICONNECT_CORS_ORIGIN` to a JSON array of exact browser origins; wildcards are rejected. Native clients without Origin still need the key. Include it as the top-level `key` in every request.
+
+Environment changes are applied to existing AnkiConnect volumes at every launch, including saved `meta.json` overrides. Recreate the container after changing env files. The UI password does not protect the API. Daily image builds refresh the OS and Node runtimes.

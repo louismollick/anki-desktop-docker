@@ -18,8 +18,17 @@ if [ -n "$ANKIWEB_USER" ] && { [ -n "$ANKIWEB_PASSWORD" ] || [ -n "$ANKIWEB_SYNC
             touch "$SETUP_MARKER"
         else
             echo "[ERROR] Setup failed"
+            exit 1
         fi
     fi
+fi
+
+# Reapply security settings on every launch, including existing profiles. Never
+# launch Anki with stale unauthenticated settings when configuration is invalid.
+if ! python3 /app/scripts/setup_anki.py install-addon --config-dir /config ||
+   ! python3 /app/scripts/setup_anki.py configure-addon --config-dir /config; then
+    echo "[ERROR] AnkiConnect security configuration failed; Anki will not start"
+    exit 1
 fi
 
 # Start Anki GUI

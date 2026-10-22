@@ -1,8 +1,15 @@
+FROM node:24-bookworm-slim AS node
+RUN node -e "const [major, minor, patch] = process.versions.node.split('.').map(Number); if (major !== 24 || minor < 22 || (minor === 22 && patch < 1)) process.exit(1)"
+
 FROM lsiobase/kasmvnc:ubuntunoble
 
 # Use pre-launcher Anki version from PyPI (avoids launcher confirmation issues)
 # TODO: Switch back to launcher version when deployment is fixed
 ARG ANKI_VERSION=25.2.7
+
+# KasmVNC also runs Node. Replace the distro runtime with the patched LTS build.
+COPY --from=node /usr/local/bin/node /usr/bin/node
+RUN node --version
 
 # Install system dependencies and Qt6/XCB requirements
 RUN apt-get update && \
